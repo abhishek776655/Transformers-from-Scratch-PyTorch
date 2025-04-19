@@ -1,0 +1,59 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+*.venv/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Training artifacts
+weights/
+runs/
+*.pt
+*.pth
+*.bin
+*.onnx
+
+# Dataset/tokenizer caches
+*.json
+*.txt
+*.csv
+*.pickle
+*.pkl
+
+# Logs and outputs
+logs/
+*.log
+*.out
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Jupyter notebooks
+*.ipynb_checkpoints/
+
+# Local config overrides
+local_config.py
+.env
+*.env
+
+# Profiling data
+*.prof
+
+pytorch-venv
