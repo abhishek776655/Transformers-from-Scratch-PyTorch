@@ -2,7 +2,7 @@
 
 [![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=PyTorch&logoColor=white)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Stars](https://img.shields.io/github/stars/yourusername/transformer-from-scratch?style=social)](https://github.com/yourusername/transformer-from-scratch)
+[![GitHub Stars](https://img.shields.io/github/stars/yourusername/transformer-from-scratch?style=social)](https://github.com/abhishek776655/Transformers-from-Scratch-PyTorch)
 
 **Unlock the magic of self-attention!** This project is a hands-on implementation of the groundbreaking ["Attention Is All You Need"](https://arxiv.org/abs/1706.03762) paper, built entirely in **PyTorch**—no shortcuts, no high-level wrappers—just pure deep learning fundamentals.
 
@@ -59,11 +59,11 @@ Every component coded from scratch:
 
 ```bash
 # Clone with HTTPS
-git clone https://github.com/yourusername/transformer-from-scratch.git
-cd transformer-from-scratch
+git clone https://github.com/abhishek776655/Transformers-from-Scratch-PyTorch
+cd Transformers-from-Scratch-PyTorch
 
 # Or with SSH (if you prefer)
-git clone git@github.com:yourusername/transformer-from-scratch.git
+git clone https://github.com/abhishek776655/Transformers-from-Scratch-PyTorch
 
 # Install dependencies
 pip install -r requirements.txt
