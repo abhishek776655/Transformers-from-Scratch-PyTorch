@@ -11,7 +11,7 @@ def get_config():
         'd_model': 512,
         'src_lang': 'en',
         'tgt_lang': 'ru',
-        'model_folder': 'runs/en-ru/weights',
+        'model_folder': 'weights',
         'model_basename': 'en-ru_',
         'preload': None,
         'tokenizer_file': "tokenizer_{0}.json",
