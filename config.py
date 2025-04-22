@@ -4,15 +4,15 @@ from pathlib import Path
 def get_config():
     """Returns the default configuration dictionary for the transformer model."""
     return {
-        'batch_size': 8,
+        'batch_size': 16,
         'num_epochs': 20,
         'lr': 10**-4,
         'seq_len': 350,
         'd_model': 512,
         'src_lang': 'en',
         'tgt_lang': 'ru',
-        'model_folder': 'weights',
-        'model_basename': 'tmodel_',
+        'model_folder': 'runs/en-ru/weights',
+        'model_basename': 'en-ru_',
         'preload': None,
         'tokenizer_file': "tokenizer_{0}.json",
         'experiment_name': 'runs/tmodel'

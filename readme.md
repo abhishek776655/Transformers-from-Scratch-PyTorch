@@ -105,14 +105,65 @@ tensorboard --logdir=runs --port=6006
 
 ---
 
+## 📊 Training with Advanced Logging
+
+For enhanced experiment tracking and debugging, use `train_with_logging.py`. This script extends the standard training pipeline by adding detailed logging to both **TensorBoard** and **Weights & Biases (wandb)**, making it easier to monitor, visualize, and compare your model’s performance.
+
+### Key Logging Features
+
+- **Training and Validation Loss** (per batch and per epoch)
+- **Learning Rate** (per batch)
+- **Batch and Epoch Timing** (profiling training speed)
+- **Gradient and Weight Norms** (per layer and totals)
+- **Histograms** of gradients and weights (periodically)
+- **Validation Metrics:** BLEU score, token-level accuracy
+- **System Resource Usage:** (e.g., memory monitoring via `psutil`)
+- **Seamless integration with wandb:** All metrics and histograms are logged to your wandb dashboard for experiment tracking.
+
+### Usage
+
+```bash
+python train_with_logging.py
+```
+
+- All logs are saved to the `runs/` directory for TensorBoard.
+- To launch TensorBoard and monitor training in your browser:
+
+```bash
+tensorboard --logdir=runs --port=6006
+```
+
+- For wandb, ensure you have an account and are logged in (`wandb login`). Metrics will be available in your wandb project dashboard.
+
+### Example wandb Setup
+
+```bash
+pip install wandb
+wandb login
+python train_with_logging.py
+```
+
+### Sample Log Outputs
+
+- **TensorBoard:** Visualize loss curves, learning rate schedules, gradient/weight histograms, and more.
+- **wandb:** Interactive dashboards for comparing runs, monitoring system usage, and sharing results.
+
+**Tip:** Use this script when you want maximum visibility into your model’s training dynamics, or when running experiments you want to track and compare over time.
+
+---
+
+---
+
 ## 📦 Code Structure
 
-| File         | Purpose                                |
-| ------------ | -------------------------------------- |
-| `model.py`   | Core Transformer architecture          |
-| `train.py`   | Training/validation pipeline           |
-| `dataset.py` | Bilingual dataloader + masking         |
-| `config.py`  | Hyperparameters (LR, batch size, etc.) |
+| File/Folder             | Purpose                                             |
+| ----------------------- | --------------------------------------------------- |
+| `model.py`              | Core Transformer architecture                       |
+| `train.py`              | Training/validation pipeline                        |
+| `train_with_logging.py` | Training with advanced logging (TensorBoard, wandb) |
+| `dataset.py`            | Bilingual dataloader + masking                      |
+| `config.py`             | Hyperparameters (LR, batch size, etc.)              |
+| `inference.ipynb`       | Notebook for running inference/translation          |
 
 ---
 
