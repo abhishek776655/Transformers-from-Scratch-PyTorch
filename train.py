@@ -57,6 +57,39 @@ def get_or_build_tokenizer(config, ds, lang):
         tokenizer = Tokenizer.from_file(str(tokenizer_path))
     return tokenizer
 
+
+def download_dataset(config: dict):
+    """
+    Downloads and splits the dataset according to the configuration.
+
+    Args:
+        config (dict): Configuration dictionary. Relevant keys include:
+            - 'dataset_path': Path or identifier for the dataset to load.
+            - 'dataset_name': Name of the dataset configuration.
+            - 'train_only_split' (bool): If True, splits the 'train' split into train/val. If False, loads separate 'train' and 'validation' splits.
+
+    Returns:
+        tuple:
+            - train_ds_raw: Raw training dataset split.
+            - val_ds_raw: Raw validation dataset split.
+            - ds_raw: The combined or original dataset (for tokenizer building, etc).
+
+    Notes:
+        - If 'train_only_split' is True, the function splits the 'train' portion into train/val (90/10).
+        - If False, loads both 'train' and 'validation' splits and combines them for tokenizer use.
+    """
+
+    if config['train_only_split']:
+        ds_raw = load_dataset(config['dataset_path'], name=config['dataset_name'], split='train')
+        train_ds_size = int(0.9 * len(ds_raw))
+        val_ds_size = len(ds_raw) - train_ds_size  # Ensures exact match
+        train_ds_raw, val_ds_raw = random_split(ds_raw, [train_ds_size, val_ds_size])
+        return train_ds_raw, val_ds_raw, ds_raw
+    else:
+        train_ds_raw = load_dataset(config['dataset_path'], name=config['dataset_name'], split='train')
+        val_ds_raw = load_dataset(config['dataset_path'], name=config['dataset_name'], split='validation')
+        return train_ds_raw, val_ds_raw, train_ds_raw + val_ds_raw
+
 def get_ds(config: dict):
     """Prepares training and validation datasets along with tokenizers.
 
@@ -70,16 +103,12 @@ def get_ds(config: dict):
             - tokenizer_src: Tokenizer for the source language.
             - tokenizer_tgt: Tokenizer for the target language.
     """
-    ds_raw = load_dataset('Helsinki-NLP/opus_books', f'{config["src_lang"]}-{config["tgt_lang"]}', split='train')
+    train_ds_raw, val_ds_raw, ds_raw = download_dataset(config)
 
     # build tokenizer
     tokenizer_src = get_or_build_tokenizer(config, ds_raw, config['src_lang'])
     tokenizer_tgt = get_or_build_tokenizer(config, ds_raw, config['tgt_lang'])
 
-    # Keep 90% for training and 10% for validation
-    train_ds_size = int(0.9 * len(ds_raw))
-    val_ds_size = len(ds_raw) - train_ds_size  # Ensures exact match
-    train_ds_raw, val_ds_raw = random_split(ds_raw, [train_ds_size, val_ds_size])
 
     train_ds = BillingualDataset(train_ds_raw, tokenizer_src, tokenizer_tgt, config['src_lang'], config['tgt_lang'],  config['seq_len'])
     val_ds = BillingualDataset(val_ds_raw, tokenizer_src, tokenizer_tgt, config['src_lang'], config['tgt_lang'],  config['seq_len'])

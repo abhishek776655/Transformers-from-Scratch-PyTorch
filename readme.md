@@ -79,6 +79,11 @@ config = {
     'tgt_lang': 'ru',           # Target language (e.g., 'fr' for French)
     'batch_size': 32,           # Increase for better GPU utilization
 
+    # Dataset configuration
+    'dataset_path': 'opus_books',     # Hugging Face dataset identifier
+    'dataset_name': 'en-ru',          # Dataset configuration (language pair)
+    'train_only_split': True,         # If True, splits 'train' into train/val; if False, loads both splits
+
     # Model architecture
     'd_model': 512,             # Embedding dimension
     'n_heads': 8,               # Number of attention heads
@@ -92,15 +97,31 @@ config = {
 }
 ```
 
+---
+
+### 📚 Dataset Configuration
+
+- **`dataset_path`**: (str) Hugging Face dataset identifier (e.g., `'opus_books'`, `'wmt14'`).
+- **`dataset_name`**: (str) Dataset configuration or language pair (e.g., `'en-ru'`, `'en-de'`).
+- **`train_only_split`**: (bool) If `True`, splits the `'train'` split into train/validation (90/10). If `False`, loads both `'train'` and `'validation'` splits directly (recommended for datasets that provide both).
+
+You can easily switch datasets or add new language pairs by changing these fields in your config.
+
 ### 3. Run Training
 
 ```bash
-# Start training (logs auto-save to /runs)
+# Start training with advanced logging (recommended for tracked experiments)
+python train_with_logging.py
+
+# Or use the basic training pipeline
 python train.py
 
 # Monitor in TensorBoard (open in browser)
 tensorboard --logdir=runs --port=6006
 ```
+
+- `train_with_logging.py` is the recommended entrypoint for experiments you want to track and analyze. It logs detailed metrics to both TensorBoard and Weights & Biases (wandb).
+- `train.py` is a simpler script for quick runs or debugging.
 
 ---
 
@@ -114,10 +135,12 @@ For enhanced experiment tracking and debugging, use `train_with_logging.py`. Thi
 - **Learning Rate** (per batch)
 - **Batch and Epoch Timing** (profiling training speed)
 - **Gradient and Weight Norms** (per layer and totals)
-- **Histograms** of gradients and weights (periodically)
+- **Histograms** of gradients and weights (periodically; see `HISTOGRAM_LOG_INTERVAL` in code to adjust frequency)
 - **Validation Metrics:** BLEU score, token-level accuracy
 - **System Resource Usage:** (e.g., memory monitoring via `psutil`)
 - **Seamless integration with wandb:** All metrics and histograms are logged to your wandb dashboard for experiment tracking.
+
+> **Note:** To change how often histograms are logged, edit the `HISTOGRAM_LOG_INTERVAL` constant in `train_with_logging.py` (default: 100 steps).
 
 ### Usage
 
@@ -204,7 +227,7 @@ config = {
 print(f"Attention weights shape: {attention_weights.shape}")
 ```
 
-3. **For Better Performance**:
+3. **For Better Performance (Mixed Precision)**:
 
 ```python
 # Enable mixed precision training (if GPU available)
@@ -218,6 +241,8 @@ scaler.step(optimizer)
 scaler.update()
 ```
 
+- Mixed precision is supported in `train_with_logging.py` for faster training and lower memory usage on modern GPUs. Enable it in your config or script as shown above.
+
 4. **For Debugging**:
 
 ```python
@@ -228,6 +253,17 @@ print(f"Attention weights: {attn.shape}")   # Should be [batch, heads, seq_len, 
 
 ---
 
+## 🛠️ Troubleshooting & Logging Tips
+
+- **wandb login issues:** If wandb metrics are not logging, run `wandb login` in your terminal and ensure your API key is set.
+- **CUDA out-of-memory:** Lower the batch size in `config.py` or use mixed precision.
+- **TensorBoard not showing logs:** Double-check the `runs/` directory and ensure the correct path is set in TensorBoard.
+- **Custom logging:** Adjust `HISTOGRAM_LOG_INTERVAL` or add more `writer.add_scalar`/`wandb.log` calls in `train_with_logging.py` as needed.
+- **Model checkpoints:** Checkpoints are saved after each epoch in the folder specified by your config.
+- **Config changes:** If you add new config options, document them in `config.py` and this README.
+
+---
+
 ## 🤝 Contribute
 
 We welcome contributions!
@@ -235,8 +271,6 @@ We welcome contributions!
 1. Fork the repository
 2. Create a feature branch
 3. Submit a pull request
-
----
 
 ---
 

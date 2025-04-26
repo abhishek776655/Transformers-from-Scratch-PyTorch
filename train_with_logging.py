@@ -28,6 +28,7 @@ from config import get_config, get_weights_file_path
 from dataset import BillingualDataset, causal_mask
 from model import build_transformer
 
+
 # Add near the top with other constants
 HISTOGRAM_LOG_INTERVAL = 100 # Log histograms every 100 steps (match other metrics)
 
@@ -66,6 +67,52 @@ def get_or_build_tokenizer(config, ds, lang):
         tokenizer = Tokenizer.from_file(str(tokenizer_path))
     return tokenizer
 
+def download_dataset(config: dict):
+    """
+    Downloads and splits the dataset according to the configuration.
+
+    Args:
+        config (dict): Configuration dictionary. Relevant keys include:
+            - 'dataset_path': Path or identifier for the dataset to load.
+            - 'dataset_name': Name of the dataset configuration.
+            - 'train_only_split' (bool): If True, splits the 'train' split into train/val. If False, loads separate 'train' and 'validation' splits.
+
+    Returns:
+        tuple:
+            - train_ds_raw: Raw training dataset split.
+            - val_ds_raw: Raw validation dataset split.
+            - ds_raw: The combined or original dataset (for tokenizer building, etc).
+
+    Notes:
+        - If 'train_only_split' is True, the function splits the 'train' portion into train/val (90/10).
+        - If False, loads both 'train' and 'validation' splits and combines them for tokenizer use.
+    """
+
+    import random
+    # Helper to subsample a HuggingFace Dataset or a list
+    def sample_15_percent(ds, seed=42):
+        n = int(len(ds) * 0.02)
+        if hasattr(ds, 'select'):
+            idxs = random.Random(seed).sample(range(len(ds)), n)
+            return ds.select(idxs)
+        else:
+            return random.Random(seed).sample(ds, n)
+
+    if config['train_only_split']:
+        ds_raw = load_dataset(config['dataset_path'], name=config['dataset_name'], split='train')
+        ds_raw = sample_15_percent(ds_raw)
+        train_ds_size = int(0.9 * len(ds_raw))
+        val_ds_size = len(ds_raw) - train_ds_size  # Ensures exact match
+        train_ds_raw, val_ds_raw = random_split(ds_raw, [train_ds_size, val_ds_size])
+        return train_ds_raw, val_ds_raw, ds_raw
+    else:
+        train_ds_raw = load_dataset(config['dataset_path'], name=config['dataset_name'], split='train')
+        val_ds_raw = load_dataset(config['dataset_path'], name=config['dataset_name'], split='validation')
+        train_ds_raw = sample_15_percent(train_ds_raw)
+        val_ds_raw = sample_15_percent(val_ds_raw)
+        return train_ds_raw, val_ds_raw, train_ds_raw + val_ds_raw
+
+
 def get_ds(config: dict):
     """Prepares training and validation datasets along with tokenizers.
 
@@ -79,15 +126,11 @@ def get_ds(config: dict):
             - tokenizer_src: Tokenizer for the source language.
             - tokenizer_tgt: Tokenizer for the target language.
     """
-    ds_raw = load_dataset('Helsinki-NLP/opus_books', f'{config["src_lang"]}-{config["tgt_lang"]}', split='train')
 
+    train_ds_raw, val_ds_raw, ds_raw = download_dataset(config)
     # build tokenizer   
     tokenizer_src = get_or_build_tokenizer(config, ds_raw, config['src_lang'])  
     tokenizer_tgt = get_or_build_tokenizer(config, ds_raw, config['tgt_lang'])
-    # Keep 90% for training and 10% for validation
-    train_ds_size = int(0.9 * len(ds_raw))
-    val_ds_size = len(ds_raw) - train_ds_size  # Ensures exact match
-    train_ds_raw, val_ds_raw = random_split(ds_raw, [train_ds_size, val_ds_size])
 
     train_ds = BillingualDataset(train_ds_raw, tokenizer_src, tokenizer_tgt, config['src_lang'], config['tgt_lang'],  config['seq_len'])
     val_ds = BillingualDataset(val_ds_raw, tokenizer_src, tokenizer_tgt, config['src_lang'], config['tgt_lang'],  config['seq_len'])
@@ -250,7 +293,10 @@ def greedy_decode(
     # Calculate loss if requested
     if log_metrics and loss_fn is not None and label is not None:
         # 1. Concatenate logits (shape: [1, decoded_seq_len, vocab_size])
-        all_outputs = torch.cat(decoder_outputs, dim=1)
+        try:
+            all_outputs = torch.cat(decoder_outputs, dim=1)
+        except ValueError:
+            return decoder_input.squeeze(0), metrics
         # 2. Pad logits to match label's seq_len (if shorter)
         if all_outputs.size(1) < label.size(1):
             padding = torch.zeros(
@@ -406,7 +452,7 @@ def run_validation(
     val_metrics["examples"] = list(zip(source_texts, expected, predicted))
 
     # Add validation loss
-    val_metrics["val_loss"] = metrics["loss"]
+    val_metrics["val_loss"] = metrics.get("loss", None)
 
     # --- Logging 
     if writer:

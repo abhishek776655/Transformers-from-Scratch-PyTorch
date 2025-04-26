@@ -5,17 +5,20 @@ def get_config():
     """Returns the default configuration dictionary for the transformer model."""
     return {
         'batch_size': 16,
-        'num_epochs': 20,
+        'num_epochs': 25,
         'lr': 10**-4,
-        'seq_len': 350,
+        'seq_len': 450,
         'd_model': 512,
         'src_lang': 'en',
-        'tgt_lang': 'ru',
+        'tgt_lang': 'hi',
         'model_folder': 'weights',
-        'model_basename': 'en-ru_',
-        'preload': None,
+        'model_basename': 'en-hi_',
+        'preload': '16',
         'tokenizer_file': "tokenizer_{0}.json",
-        'experiment_name': 'runs/tmodel'
+        'experiment_name': 'runs/tmodel',
+        'train_only_split': True,
+        'dataset_path': 'cfilt/iitb-english-hindi',
+        'dataset_name': None
     }
 
 def get_weights_file_path(config, epoch: str):
